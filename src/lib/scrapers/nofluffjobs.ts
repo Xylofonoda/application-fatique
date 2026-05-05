@@ -83,7 +83,7 @@ export async function scrapeNoFluffJobs(
   _city = "",
   opts?: ScraperOptions,
 ): Promise<ScrapedJob[]> {
-  const MAX_PAGES = deepSearch ? 10 : 5;
+  const MAX_PAGES = deepSearch ? 10 : 2;
   const jobs: ScrapedJob[] = [];
   const seenUrls = new Set<string>();
 
@@ -125,7 +125,7 @@ export async function scrapeNoFluffJobs(
     const relevant = await extractRelevantJobsFromPage(query, skillLevel, pageText, jobLinks, undefined, intent);
     if (relevant.length === 0) break;
 
-    const batchedJobs = await batchProcess(relevant, 4, async ({ title, url }) => {
+    const batchedJobs = await batchProcess(relevant, 6, async ({ title, url }) => {
       try {
         const { text } = await pwFetch(url, "[class*='description'], [class*='job-desc'], main");
         const extracted = await extractJobFromText(text, { url, title, company: "", location: "Remote" });

@@ -32,8 +32,8 @@ async function launchBrowser(): Promise<Browser> {
     ],
   });
   // Clean up on process exit
-  process.once("exit", () => browser.close().catch(() => {}));
-  process.once("SIGINT", () => browser.close().catch(() => {}));
+  process.once("exit", () => browser.close().catch(() => { }));
+  process.once("SIGINT", () => browser.close().catch(() => { }));
   return browser;
 }
 
@@ -45,6 +45,12 @@ function getBrowser(): Promise<Browser> {
     });
   }
   return browserPromise;
+}
+
+// Warm up the browser in the background on module load so the first scrape
+// doesn't pay the 3–5s Chromium cold-start cost.
+if (process.env.PLAYWRIGHT_ENABLED === "true") {
+  getBrowser().catch(() => { });
 }
 
 // ── Blocked resource types & domains ─────────────────────────────────────────
@@ -94,10 +100,10 @@ export async function pwFetch(
         BLOCKED_TYPES.has(type) ||
         BLOCKED_DOMAINS.some((d) => reqUrl.includes(d))
       ) {
-        route.abort().catch(() => {});
+        route.abort().catch(() => { });
         return;
       }
-      route.continue().catch(() => {});
+      route.continue().catch(() => { });
     });
 
     await page.setExtraHTTPHeaders({
@@ -109,10 +115,10 @@ export async function pwFetch(
 
     // If a specific selector is expected, wait for it (fast path) — otherwise wait briefly for JS
     if (waitSelector) {
-      await page.waitForSelector(waitSelector, { timeout: 8_000 }).catch(() => {});
+      await page.waitForSelector(waitSelector, { timeout: 8_000 }).catch(() => { });
     } else {
       // Small JS-settle pause — avoids full networkidle (which is very slow)
-      await page.waitForTimeout(2_500);
+      await page.waitForTimeout(1_500);
     }
 
     const html = await page.content();
@@ -137,7 +143,7 @@ export async function pwFetch(
 
     return { text, links };
   } finally {
-    await page.close().catch(() => {});
+    await page.close().catch(() => { });
   }
 }
 

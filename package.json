@@ -10,7 +10,15 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
     "@apollo/client": "^3.12.8",
@@ -33,6 +41,7 @@
     "@prisma/adapter-neon": "^7.7.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.7.0",
+    "bcryptjs": "^3.0.3",
     "cheerio": "^1.0.0",
     "dayjs": "^1.11.13",
     "docx": "^9.6.1",
@@ -53,6 +62,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/formidable": "^3.4.5",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.4",
@@ -61,9 +72,12 @@
     "@types/react-dom": "^19",
     "@types/turndown": "^5.0.6",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^4.1.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "happy-dom": "^20.9.0",
     "prisma": "^7.7.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }

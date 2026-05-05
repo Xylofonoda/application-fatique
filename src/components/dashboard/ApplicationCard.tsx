@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -14,12 +15,14 @@ import {
   alpha,
   TextField,
   Collapse,
+  CircularProgress,
 } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import EditIcon from "@mui/icons-material/Edit";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import NotesIcon from "@mui/icons-material/Notes";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import type { Application, AppStatus } from "@/types";
 import { STATUS_COLOR, SOURCE_COLOR } from "@/types";
 import { CvAdjustDialog } from "@/components/dialogs/CvAdjustDialog";
@@ -39,10 +42,39 @@ export function ApplicationCard({
   onViewCoverLetter,
   onGenerateCoverLetter,
 }: ApplicationCardProps) {
+  const router = useRouter();
   const [cvAdjustOpen, setCvAdjustOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notes, setNotes] = useState(app.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [autoApplying, setAutoApplying] = useState(false);
+  const [autoApplyError, setAutoApplyError] = useState<string | null>(null);
+  const [manualRequired, setManualRequired] = useState(false);
+
+  const handleAutoApply = async () => {
+    setAutoApplying(true);
+    setAutoApplyError(null);
+    setManualRequired(false);
+    try {
+      const res = await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId: app.id }),
+      });
+      const data = await res.json() as { error?: string; status?: string };
+      if (!res.ok) throw new Error(data.error ?? "Auto-apply failed");
+      if (data.status === "MANUAL_REQUIRED") {
+        setManualRequired(true);
+        window.open(app.job.sourceUrl, "_blank", "noopener,noreferrer");
+      } else {
+        router.refresh();
+      }
+    } catch (err) {
+      setAutoApplyError(String(err));
+    } finally {
+      setAutoApplying(false);
+    }
+  };
 
   const handleSaveNotes = async () => {
     setSaving(true);
@@ -186,6 +218,26 @@ export function ApplicationCard({
         <Box sx={{ mx: 2, height: "1px", background: ios.separator }} />
 
         <Stack direction="row" spacing={0.75} sx={{ px: 2, py: 1.25, flexWrap: "wrap" }}>
+          {app.status === "PENDING" && (
+            <Tooltip title="Automatically fill and submit this application">
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                startIcon={autoApplying ? <CircularProgress size={13} color="inherit" /> : <RocketLaunchIcon fontSize="small" />}
+                onClick={handleAutoApply}
+                disabled={autoApplying}
+                sx={{
+                  background: alpha(ios.indigo, 0.85),
+                  "&:hover": { background: ios.indigo },
+                  "&.Mui-disabled": { opacity: 0.5 },
+                }}
+              >
+                {autoApplying ? "Applying…" : "Auto Apply"}
+              </Button>
+            </Tooltip>
+          )}
+
           <Tooltip title="Change status">
             <Button
               size="small"
@@ -224,7 +276,7 @@ export function ApplicationCard({
               startIcon={<AutoAwesomeIcon fontSize="small" />}
               onClick={() => onGenerateCoverLetter(app.job.id, app.job.title)}
             >
-              Generate
+              Generate Cover Letter
             </Button>
           )}
 
@@ -258,6 +310,43 @@ export function ApplicationCard({
             </IconButton>
           </Tooltip>
         </Stack>
+
+        {manualRequired && (
+          <Box
+            sx={{
+              mx: 2,
+              mb: 1.5,
+              p: 1.25,
+              background: alpha(ios.orange, 0.1),
+              border: `1px solid ${alpha(ios.orange, 0.3)}`,
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+            }}
+          >
+            <Typography variant="caption" sx={{ color: ios.orange, lineHeight: 1.4 }}>
+              Auto-apply couldn&apos;t complete — the form needs manual input. The job page has been opened for you.
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              sx={{ flexShrink: 0, borderColor: ios.orange, color: ios.orange, "&:hover": { background: alpha(ios.orange, 0.1) } }}
+              onClick={() => window.open(app.job.sourceUrl, "_blank", "noopener,noreferrer")}
+            >
+              Open Again
+            </Button>
+          </Box>
+        )}
+
+        {autoApplyError && (
+          <Box sx={{ px: 2, pb: 1.5 }}>
+            <Typography variant="caption" sx={{ color: ios.red }}>
+              {autoApplyError}
+            </Typography>
+          </Box>
+        )}
       </Card>
 
       <CvAdjustDialog

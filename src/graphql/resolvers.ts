@@ -308,6 +308,7 @@ export const resolvers = {
         data: { coverLetterId: null },
       });
       await prisma.coverLetter.delete({ where: { id } });
+      revalidateTag(applicationTag(userId), "default");
       return true;
     },
 

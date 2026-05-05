@@ -116,12 +116,10 @@ export function DashboardClient({ applications, filters, sources, statusCounts }
         jobId={streamDlg.jobId}
         jobTitle={streamDlg.jobTitle}
         onClose={() => {
-          // If generation completed, refresh so the card shows "View Cover Letter"
           if (streamDlg.completed) router.refresh();
           setStreamDlg({ open: false, jobId: null, jobTitle: "", completed: false });
         }}
         onComplete={() => {
-          // Mark completed but keep dialog open so the user can read/download
           setStreamDlg((prev) => ({ ...prev, completed: true }));
         }}
       />

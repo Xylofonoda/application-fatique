@@ -38,7 +38,7 @@ export async function scrapeJooble(
     const relevant = await extractRelevantJobsFromPage(query, skillLevel, pageText, links);
     if (relevant.length === 0) break;
 
-    const batchedJobs = await batchProcess(relevant, 5, async ({ title, url }) => {
+    const batchedJobs = await batchProcess(relevant, 7, async ({ title, url }) => {
       try {
         const { text } = await pwFetch(url);
         const extracted = await extractJobFromText(text, { url, title, company: "", location: city || "Czech Republic" });
