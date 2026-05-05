@@ -7,6 +7,7 @@ import {
   DialogActions,
   Button,
   Typography,
+  Alert,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import { downloadAsDocx } from "@/lib/downloadDocx";
@@ -18,6 +19,8 @@ interface CoverLetterDialogProps {
   filenameStem?: string;
   /** If provided, shows a Delete button that calls this callback. */
   onDelete?: () => void;
+  /** Error message to display if deletion failed. */
+  onDeleteError?: string | null;
   onClose: () => void;
 }
 
@@ -27,6 +30,7 @@ export function CoverLetterDialog({
   content,
   filenameStem = "cover-letter",
   onDelete,
+  onDeleteError,
   onClose,
 }: CoverLetterDialogProps) {
   const handleDownload = () => downloadAsDocx(content, filenameStem);
@@ -35,6 +39,11 @@ export function CoverLetterDialog({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Cover Letter</DialogTitle>
       <DialogContent>
+        {onDeleteError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Failed to delete: {onDeleteError}
+          </Alert>
+        )}
         <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
           {content}
         </Typography>

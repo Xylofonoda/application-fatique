@@ -77,12 +77,12 @@ export async function POST(req: NextRequest) {
         }),
       ]);
 
-      await send({ done: true });
-
       revalidateTag(applicationTag(userId), "default");
       revalidateTag(favouriteTag(userId), "default");
       revalidatePath("/dashboard");
       revalidatePath("/favourites");
+
+      await send({ done: true });
     } catch (err) {
       await send({ error: String(err) });
     } finally {

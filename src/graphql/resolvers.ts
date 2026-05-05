@@ -300,9 +300,14 @@ export const resolvers = {
       { id }: { id: string },
       { userId }: GqlContext
     ) => {
-      // Verify ownership
-      const cl = await prisma.coverLetter.findFirst({ where: { id, userId } });
-      if (!cl) throw new Error("Not found");
+      const cl = await prisma.coverLetter.findUnique({ where: { id } });
+      // If it doesn't exist at all, treat as already deleted (idempotent)
+      if (!cl) {
+        revalidateTag(applicationTag(userId), "default");
+        return true;
+      }
+      // Ownership check
+      if (cl.userId !== userId) throw new Error("Not found");
       await prisma.application.updateMany({
         where: { coverLetterId: id, userId },
         data: { coverLetterId: null },

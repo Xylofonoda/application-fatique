@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { ApplicationStatus, JobSource } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
@@ -104,26 +103,14 @@ async function _getApplicationStatusCounts(
 }
 
 export function getApplications(userId: string, filters?: ApplicationFilters) {
-  return unstable_cache(
-    () => _getApplications(userId, filters),
-    ["get-applications", userId, JSON.stringify(filters ?? {})],
-    { revalidate: 60, tags: [applicationTag(userId)] },
-  )();
+  return _getApplications(userId, filters);
 }
 
 export function getApplicationSources(userId: string) {
-  return unstable_cache(
-    () => _getApplicationSources(userId),
-    ["get-application-sources", userId],
-    { revalidate: 60, tags: [applicationTag(userId)] },
-  )();
+  return _getApplicationSources(userId);
 }
 
 export function getApplicationStatusCounts(userId: string, filters?: Omit<ApplicationFilters, "status">) {
-  return unstable_cache(
-    () => _getApplicationStatusCounts(userId, filters),
-    ["get-application-status-counts", userId, JSON.stringify(filters ?? {})],
-    { revalidate: 60, tags: [applicationTag(userId)] },
-  )();
+  return _getApplicationStatusCounts(userId, filters);
 }
 

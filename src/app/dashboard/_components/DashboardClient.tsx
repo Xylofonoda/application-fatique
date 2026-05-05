@@ -22,10 +22,11 @@ export function DashboardClient({ applications, filters, sources, statusCounts }
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [clDialog, setClDialog] = useState<{ open: boolean; content: string; coverId: string | null }>({
+  const [clDialog, setClDialog] = useState<{ open: boolean; content: string; coverId: string | null; deleteError: string | null }>({
     open: false,
     content: "",
     coverId: null,
+    deleteError: null,
   });
   const [streamDlg, setStreamDlg] = useState<{ open: boolean; jobId: string | null; jobTitle: string; completed: boolean }>({
     open: false,
@@ -89,16 +90,17 @@ export function DashboardClient({ applications, filters, sources, statusCounts }
         applications={applications}
         isPending={isPending}
         onStatusClick={(id, status) => setStatusDialog({ open: true, id, status })}
-        onViewCoverLetter={(content, coverId) => setClDialog({ open: true, content, coverId })}
+        onViewCoverLetter={(content, coverId) => setClDialog({ open: true, content, coverId, deleteError: null })}
         onGenerateCoverLetter={(jobId, jobTitle) => setStreamDlg({ open: true, jobId, jobTitle, completed: false })}
       />
 
       <CoverLetterDialog
         open={clDialog.open}
         content={clDialog.content}
-        onClose={() => setClDialog({ open: false, content: "", coverId: null })}
+        onClose={() => setClDialog({ open: false, content: "", coverId: null, deleteError: null })}
+        onDeleteError={clDialog.deleteError}
         onDelete={clDialog.coverId ? async () => {
-          await fetch("/api/graphql", {
+          const res = await fetch("/api/graphql", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -106,7 +108,12 @@ export function DashboardClient({ applications, filters, sources, statusCounts }
               variables: { id: clDialog.coverId },
             }),
           });
-          setClDialog({ open: false, content: "", coverId: null });
+          const data = await res.json() as { errors?: { message: string }[] };
+          if (data.errors?.length) {
+            setClDialog((prev) => ({ ...prev, deleteError: data.errors![0].message }));
+            return;
+          }
+          setClDialog({ open: false, content: "", coverId: null, deleteError: null });
           router.refresh();
         } : undefined}
       />

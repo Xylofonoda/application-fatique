@@ -9,8 +9,8 @@ import type { DashboardFilters } from "@/components/dashboard/DashboardFilterBar
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-// Revalidate every 60 s; server actions call revalidatePath so mutations are instant
-export const revalidate = 60;
+// Force dynamic so router.refresh() always gets fresh data from Prisma
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage({
   searchParams,
